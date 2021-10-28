@@ -1,0 +1,15 @@
+.traceTable {
+    width: 90%;
+    margin-left: 5%;
+}
+
+.traceExtraData {
+    display: none;
+}
+
+#myChart {
+    height: 400px !important;
+    width: 400px !important;
+    margin-left: 5%;
+    margin-top: 30px;
+}

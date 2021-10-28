@@ -1,0 +1,158 @@
+{% include 'base.html' %}
+
+{% block content %}
+
+<h1>Tracer</h1>
+
+
+<!-- Main table in UI -->
+<table id="traceTable" class="table table-striped table-hover table-bordered traceTable">
+    <thead>
+      <tr>
+        <th>Trace ID</th>
+          <th colspan="2">Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for i in topCost %}
+        <tr>
+            <td><a href="#" class="dispData" data="{{ i }}"> {{ i }} </a></td>
+            <td>{{ topCost[i]['duration'] }} μs</td>
+            <td>{{ (topCost[i]['duration']|int/1000)}} ms</td>
+            <td>{{ topCost[i]['name'] }}</td>
+            
+        </tr>
+    </tbody>
+    <tbody id="{{ i }}"" class="traceExtraData">
+        <tr>
+            <td colspan="4">
+
+                    <table style="width:100%" id="{{ i }}_dataTable">
+                        
+                    </table>
+
+
+
+
+            </td>
+        </tr>
+    </tbody>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <canvas id="myChart" style="width: 400px !important; height: 400px !important;"></canvas>
+  <script>
+
+
+
+
+            
+  
+  </script>
+
+  <script type="text/javascript">
+    $(document).ready(function(e) {
+
+        $.ajax({
+                type: "GET",
+                url: "/phaseavg",
+                contentType: "application/json",
+                success: function(data) {
+                    makeChart(data)
+                    console.log("Ajax")
+                }
+            });
+
+            function makeChart(data) {
+                const labels=[]
+                const chartData=[]
+                for (const [key, value] of Object.entries(data)) {
+                    labels.push(key)
+                    chartData.push(value)
+                }
+                console.log(data)
+                const ctx = document.getElementById('myChart').getContext('2d');
+                const myChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+
+                            hoverBorderWidth: 10,
+                            
+                            data: chartData,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        tooltips: { 
+                            bodyFontSize: 200 
+                        },
+                        scales: {
+                        yAxes: [{
+                            ticks: {
+                            beginAtZero: true
+                            }
+                        }],
+                        xAxes: [{
+                            ticks: {
+                            fontSize: 160
+                            }
+                        }]
+                        }
+                    }
+                });
+                
+            }
+
+        // Function to show and hide extra row when trace id is clicked
+        $(".dispData").click(function(){
+            var trace_id = $(this).attr('data');
+            console.log(trace_id)
+            $("#"+trace_id).toggle();
+            $('#'+trace_id+'_dataTable').html('')
+            $.ajax({
+                type: "GET",
+                url: "/getTraceData?traceid="+trace_id,
+                contentType: "application/json",
+                success: function(data) {
+                    for (const [key, value] of Object.entries(data)) {
+                        if (key === 'data') {
+                            console.log(value)
+                            for (const [key1, value1] of Object.entries(value)) {
+                                $('#'+trace_id+'_dataTable').append(`<tr><td>${key1}</td><td>${value1}</td></tr>`);
+                            }
+                        } else {
+                    $('#'+trace_id+'_dataTable').append(`<tr><td>${key}</td><td>${value}</td></tr>`);
+                        }
+                    }
+                }
+            });
+        });
+
+
+
+
+ // Doc Ready End
+});
+</script>
+
+
+{% endblock %}
